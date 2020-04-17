@@ -1,0 +1,7 @@
+*.o
+*.o.*
+*.a
+*.mod.c
+*.order
+*.map
+*test
