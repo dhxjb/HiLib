@@ -1,0 +1,18 @@
+{
+    "env":
+    {
+        "myDefaultIncludePath": ["${workspaceFolder}"]
+    },
+    "configurations": 
+    [
+        {
+            "name": "windows",
+            "includePath": [
+                "${myDefaultIncludePath}", 
+                "${workspaceFolder}/include",
+                "${workspaceFolder}/third_party/alsa/alsa-lib-1.1.7/include"
+            ]
+        }
+    ],
+    "version" : 4
+}

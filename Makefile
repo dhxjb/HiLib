@@ -1,6 +1,7 @@
-PROJECT_DIR = /home/xiangjb/project
-TOOLCHAIN_DIR = $(PROJECT_DIR)/toolchains/buildroot_host
-COMPILE_OPTS = -I./include -I$(PROJECT_DIR)/opensource/alsa-lib-1.1.7/include
+CURRENT_DIR = $(shell pwd)
+TOOLCHAIN_DIR = $(CURRENT_DIR)/../toolchains/buildroot_host
+COMPILE_OPTS = -I$(CURRENT_DIR)/include \
+	-I$(CURRENT_DIR)/third_party/alsa/alsa-lib-1.1.7/include
 LINK_OPTS = -lasound -pthread -L.
 
 CC = $(TOOLCHAIN_DIR)/bin/arm-linux-gnueabihf-gcc
@@ -11,17 +12,24 @@ AR = $(TOOLCHAIN_DIR)/bin/arm-linux-gnueabihf-ar
 
 HC_LIB = libhicreation.a
 ALSA_MODULE = alsa
+RADIO_MODULE = radio
 
-all: $(ALSA_MODULE)-test $(HC_LIB)
-.PHONY: all 
+all: $(HC_LIB)
+.PHONY: all
+test: $(ALSA_MODULE)-test $(RADIO_MODULE)-test
+.PHONY: test
 
-CXX-src := $(wildcard src/*.cpp)
-# CXX-objs = alsa_device.o alsa-test.o
-CXX-objs := $(CXX-src:%.cpp=%.o)
+hclib-src := $(wildcard src/*.cpp)
+test-src := $(wildcard test/*.cpp)
+# hclib-objs := $(filter-out *-test.cpp, $(CXX-objs))
 # CXX-objs = $(patsubst %.cpp, %.o, $(CXX-src))
-hclib-objs := $(filter-out %-test.cpp, $(CXX-objs))
+hclib-objs := $(hclib-src:%.cpp=%.o)
+test-objs := $(test-src:%.cpp=%.o)
 
-$(ALSA_MODULE)-test: src/$(ALSA_MODULE)-test.o $(HC_LIB)
+$(ALSA_MODULE)-test: test/$(ALSA_MODULE)-test.o $(HC_LIB)
+	$(CXX) -o $@ $^ $(LINK_OPTS)
+
+$(RADIO_MODULE)-test: test/$(RADIO_MODULE)-test.o $(HC_LIB)
 	$(CXX) -o $@ $^ $(LINK_OPTS)
 
 $(HC_LIB): $(hclib-objs)
@@ -31,6 +39,7 @@ $(HC_LIB): $(hclib-objs)
 	$(CXX) -c $(CXX_FLAGS) $< -o $@
 
 .PHONY: clean
-	rm -f *.o
+clean:
+	rm -f src/*.o test/*.o $(HC_LIB)
 
 

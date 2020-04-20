@@ -1,5 +1,5 @@
-#ifndef __ALSA_DEVICE_H__
-#define __ALSA_DEVICE_H__
+#ifndef __HC_ALSA_DEVICE_H__
+#define __HC_ALSA_DEVICE_H__
 
 #include <alsa/asoundlib.h>
 
