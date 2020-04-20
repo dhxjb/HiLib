@@ -15,6 +15,11 @@ namespace HiCreation
         virtual ~TV4L2VideoCapturer()
         {}
 
+        // Todo...
+        int BufferSize() { return -1; }
+        int FrameWidth() { return -1; }
+        int FrameHeight() { return -1; }
+
     protected:
         TV4L2Device *FVideoDev;
     };

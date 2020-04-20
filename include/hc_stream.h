@@ -1,5 +1,5 @@
-#ifndef __HC_STREAM_H
-#define __HC_STREAM_H
+#ifndef __HC_STREAM_H__
+#define __HC_STREAM_H__
 
 #include "uc_stream.h"
 
