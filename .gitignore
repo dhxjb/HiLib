@@ -4,5 +4,4 @@
 *.mod.c
 *.order
 *.map
-*test
-!/test/*.cpp
+*-test
