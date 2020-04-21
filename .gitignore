@@ -5,3 +5,4 @@
 *.order
 *.map
 *test
+!/test/*.cpp
