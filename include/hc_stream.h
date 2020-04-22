@@ -59,7 +59,6 @@ namespace HiCreation
             return UltraCreation::__set_errno(EACCES);
         }
 
-
     protected:
         EndPointType FType;
     };

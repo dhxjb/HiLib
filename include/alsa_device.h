@@ -3,6 +3,7 @@
 
 #include <alsa/asoundlib.h>
 
+/** link with -lasound **/
 /**
  *          +----APP----+
  *                |

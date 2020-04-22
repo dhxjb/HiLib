@@ -3,7 +3,7 @@
 
 #include <linux/videodev2.h>
 
-#include "dev_file.h"
+#include "hc_device.h"
 
 #define MAX_FMT_SIZE 20
 

@@ -46,8 +46,11 @@ $(HC_LIB): $(hclib-objs)
 obj/%.o: src/%.cpp
 	$(CXX) -c $(CXX_FLAGS) $< -o $@
 
+obj/%.o: test/%.cpp
+	$(CXX) -c $(CXX_FLAGS) $< -o $@
+
 .PHONY: clean
 clean:
-	rm -f src/*.o test/*.o $(HC_LIB)
+	rm -f obj/*.o $(HC_LIB) $(TEST_MODULES)
 
 

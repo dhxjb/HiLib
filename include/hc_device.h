@@ -1,5 +1,5 @@
-#ifndef __HC_DEV_FILE_H__
-#define __HC_DEV_FILE_H__
+#ifndef __HC_DEVICE_H__
+#define __HC_DEVICE_H__
 
 #include <unistd.h>
 #include <stdint.h>

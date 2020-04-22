@@ -10,11 +10,11 @@ namespace HiCreation
     class TLoopBuffer
     {
     public:
-        TLoopBuffer(uint32_t capcity):
+        TLoopBuffer(size_t capcity):
             TLoopBuffer(NULL, capcity)
         {}
 
-        TLoopBuffer(unsigned char *buf, uint32_t size):
+        TLoopBuffer(unsigned char *buf, size_t size):
             FBuf(buf),
             FCapcity(size), FReadIdx(0), FWriteIdx(0)
         {
@@ -30,20 +30,20 @@ namespace HiCreation
                 delete[] FBuf;
         }
 
-        uint32_t Capcity() { return FCapcity; }
+        size_t Capcity() { return FCapcity; }
 
-        uint32_t Size() 
+        size_t Size() 
         { 
-            uint32_t retval;
+            size_t retval;
             pthread_mutex_lock(&FMutex);
             retval = (FWriteIdx - FReadIdx + FCapcity) % FCapcity;
             pthread_mutex_unlock(&FMutex);
             return retval;
         }
 
-        uint32_t Read(unsigned char *buf, int count)
+        ssize_t Read(unsigned char *buf, size_t count)
         {
-            uint32_t readable_count;
+            size_t readable_count;
             pthread_mutex_lock(&FMutex);
             readable_count = (FWriteIdx - FReadIdx + FCapcity) % FCapcity;
             if (count > readable_count)
@@ -67,11 +67,11 @@ namespace HiCreation
             return count;
         }
 
-        uint32_t Write(unsigned char *buf, int count)
+        ssize_t Write(unsigned char *buf, size_t count)
         {
-            uint32_t writable_count;
+            size_t writable_count;
             pthread_mutex_lock(&FMutex);
-            writable_count = (FReadIdx - FWriteIdx + FCapcity) % FCapcity;
+            writable_count = FCapcity - ((FWriteIdx - FReadIdx + FCapcity) % FCapcity);
             if (count > writable_count)
                 count = writable_count;
             if (writable_count > 0)
@@ -102,9 +102,9 @@ namespace HiCreation
 
     protected:
         unsigned char *FBuf;
-        uint32_t FCapcity;
-        uint32_t FReadIdx;
-        uint32_t FWriteIdx;
+        size_t FCapcity;
+        size_t FReadIdx;
+        size_t FWriteIdx;
         pthread_mutex_t FMutex; 
     };
 };
