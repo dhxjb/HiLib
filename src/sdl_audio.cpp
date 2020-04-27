@@ -65,12 +65,12 @@ int TSDLAudioDev::GetDeviceIdx(const char *dev_name)
 TSDLAudioDev::TSDLAudioDev(const char *dev_name, bool isrecord):
     FIsRecord(isrecord), FDevId(-1)
 {
+    if (TSDLAudioDev::Init() < 0)
+        printf("sdl init failed\n");
+
     memset(&FWantedSpec, 0, sizeof(FWantedSpec));
     memset(&FObtainedSpec, 0, sizeof(FObtainedSpec));
     FDevIdx = GetDeviceIdx(dev_name);
-
-    if (TSDLAudioDev::Init() < 0)
-        printf("sdl init failed\n");
 }
 
 TSDLAudioDev::~TSDLAudioDev()
@@ -119,9 +119,11 @@ int TSDLAudioPlay::Open(audio_params_t *params)
     if ((ret = inherited::Open(params)) < 0)
         return ret;
 
-    FBuffer = new TLoopBuffer(FObtainedSpec.freq * FObtainedSpec.channels *
+    FBuffer = new TLoopBuffer(16 * FObtainedSpec.samples * FObtainedSpec.channels *
         SDL_AUDIO_BITSIZE(FObtainedSpec.format) / 8);
 
+    if (! FBuffer)
+        return -ENOMEM;
     return 0;
 }
 
@@ -138,19 +140,23 @@ void TSDLAudioPlay::Close()
 void TSDLAudioPlay::HandleCallback(uint8_t *stream, int len)
 {
     size_t ret;
-    if (! FBuffer)
-        return;
-
+    if (FAudioSource)
+    {
+        audio_frame_t frame;
+        frame.buf = stream;
+        frame.len = len;
+        if (FAudioSource->OnFillFrame(this, &frame) > 0)
+            return;
+    }
     if ((ret = FBuffer->Read(stream, len)) != len)
         printf("buffer is null, reading:%d readed: %d\n", len, ret);
+    else
+        printf("readed %d \n", ret);
 }
 
 ssize_t TSDLAudioPlay::Write(unsigned char *buf, size_t count)
 {
-    size_t ret;
-    if (! FBuffer)
-        return -ENOMEM;
-        
+    size_t ret;     
     if ((ret = FBuffer->Write(buf, count)) != count)
         printf("buffer not enough, writing: %d writed: %d\n", count, ret);
 
@@ -163,5 +169,5 @@ void TSDLAudioRecord::HandleCallback(uint8_t *stream, int len)
     frame.buf = (unsigned char *)stream;
     frame.len = len;
 
-    IAudioSource::Notify(&frame);
+    TAudioSource::Send(&frame);
 }

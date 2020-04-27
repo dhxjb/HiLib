@@ -9,6 +9,7 @@
 #include "SDL_thread.h"
 
 #include "sdl_audio.h"
+#include "audio_recorder.h"
 
 #define PLAY_DEVICE_NAME    "audiocodec"
 #define RECORD_DEVICE_NAME  "sunxi_si473x"
@@ -24,7 +25,6 @@ static void IntHandler(int dummy)
 }
 
 #if 0
-
 #include "hc_loopbuffer.h"
 static TLoopBuffer *LoopBuffer;
 
@@ -116,6 +116,7 @@ int main(int argc, char **argv)
     int ret;
     TSDLAudioPlay *AudioPlay;
     TSDLAudioRecord *AudioRecord;
+    TAudioRecorder *AudioRecorder;
     audio_params_t audio_params;
 
     signal(SIGINT, IntHandler);
@@ -134,6 +135,7 @@ int main(int argc, char **argv)
 
     AudioRecord = new TSDLAudioRecord(RECORD_DEVICE_NAME);
     AudioPlay = new TSDLAudioPlay(PLAY_DEVICE_NAME);
+    AudioRecorder = new TAudioRecorder("/tmp/radio.raw");
 
     audio_params.format = SND_PCM_FORMAT_S16_LE;
     audio_params.channels = 2;
@@ -155,6 +157,7 @@ int main(int argc, char **argv)
         audio_params.sample_rate, audio_params.channels, audio_params.format);
 
     AudioRecord->AddOrUpdateSink(AudioPlay);
+    AudioRecord->AddOrUpdateSink(AudioRecorder);
 
     AudioRecord->Pause(0);
     AudioPlay->Pause(0);
@@ -167,5 +170,6 @@ int main(int argc, char **argv)
 END:
     delete AudioRecord;
     delete AudioPlay;
+    delete AudioRecorder;
 }
 #endif

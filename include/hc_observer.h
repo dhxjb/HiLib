@@ -14,6 +14,14 @@ namespace HiCreation
     class IObservable
     {
     public:
+        virtual void AddObserver(IObserver *observer) = 0;
+        virtual void DeleteObserver(IObserver *observer) = 0;
+        virtual void Notify(void *arg);
+    };
+
+    class TObservable : public IObservable
+    {
+    public:
         virtual void AddObserver(IObserver *observer)
             { FObservers.PushBack(observer); }
 

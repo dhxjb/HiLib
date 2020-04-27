@@ -4,7 +4,7 @@
 #include <stdint.h>
 #include <alsa/asoundlib.h>
 
-#include "hc_observer.h"
+#include "hc_list.h"
 
 namespace HiCreation
 {
@@ -22,32 +22,30 @@ namespace HiCreation
     {
         unsigned char *buf;
         uint32_t len;
+        int samples;
+        uint64_t pts;
     } audio_frame_t;
 
-    class IAudioSource : protected IObservable
+    /*Audio Source ----> Sink*/
+    /*interface with two way access, source active pushed or sink active pulled */
+    /*implement with either or both*/
+    class IAudioSource
     {
-        typedef IObservable inherited;
     public:
-        virtual void AddOrUpdateSink(IAudioSink *sink)
-            { return inherited::AddObserver((IObserver *)sink); }
-        virtual void RemoveSink(IAudioSink *sink)
-            { return inherited::DeleteObserver((IObserver *)sink); }
+        virtual int AddOrUpdateSink(IAudioSink *sink) = 0;
+        virtual void RemoveSink(IAudioSink *sink) = 0;
+
+        /*for sink to pull actively*/
+        virtual int OnFillFrame(IAudioSink *sink, audio_frame_t *frame) = 0;
     };
 
-    class IAudioSink : public IObserver
+    class IAudioSink
     {
     public:
+        /*for source to push actively*/
         virtual void OnFrame(audio_frame_t *frame) = 0;
-        virtual void OnDiscardedFrame() {};
-    
-    protected:
-        virtual void Update(void *arg)
-        {
-            if (arg)
-                OnFrame((audio_frame_t *)arg);
-            else
-                OnDiscardedFrame();
-        }
+
+        virtual void SetSource(IAudioSource *source) {} 
     };
 
     class IAudioDev
@@ -67,6 +65,46 @@ namespace HiCreation
 
         virtual ssize_t Read(unsigned char *buf, size_t count) = 0;
         virtual ssize_t Write(unsigned char *buf, size_t count) = 0;
+    };
+
+    class TAudioSource : public IAudioSource
+    {
+    public:
+        virtual int AddOrUpdateSink(IAudioSink *sink)
+        { 
+            FSinks.PushBack(sink);
+            return 0;
+        }
+            
+        virtual void RemoveSink(IAudioSink *sink)
+        {
+            TList<IAudioSink *>::Iterator iter = FSinks.Begin();
+            while (iter != FSinks.End())
+            {
+                if ((*iter) == sink)
+                {
+                    FSinks.Extract(iter);
+                    break;
+                }
+                iter++;
+            }
+        }
+
+        virtual void Send(audio_frame_t *frame)
+        {
+            if (FSinks.IsEmpty())
+                return;
+
+            TList<IAudioSink *>::Iterator iter;
+            for (iter = FSinks.Begin(); iter != FSinks.End(); iter++)
+                (*iter)->OnFrame(frame);
+        }
+
+        virtual int OnFillFrame(IAudioSink *sink, audio_frame_t *frame)
+            { return -EACCES; }
+
+    protected:
+        TList<IAudioSink *> FSinks;
     };
 };
 

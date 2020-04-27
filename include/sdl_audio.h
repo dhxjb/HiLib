@@ -85,15 +85,19 @@ namespace HiCreation
 
         virtual void OnFrame(audio_frame_t *frame)
             { Write(frame->buf, frame->len); }
+
+        virtual void SetSource(IAudioSource *source)
+            { FAudioSource = source; }
     protected:
         void HandleCallback(uint8_t *stream, int len);
         ssize_t Read(unsigned char *buf, size_t count) { return -EACCES; }
 
     private:
         TLoopBuffer *FBuffer;
+        IAudioSource *FAudioSource;
     };
 
-    class TSDLAudioRecord : public TSDLAudioDev, public IAudioSource
+    class TSDLAudioRecord : public TSDLAudioDev, public TAudioSource
     {
         typedef TSDLAudioDev inherited;
     public:

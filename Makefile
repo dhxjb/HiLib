@@ -2,8 +2,9 @@ CURRENT_DIR = $(shell pwd)
 TOOLCHAIN_DIR = $(CURRENT_DIR)/../toolchains/buildroot_host
 COMPILE_OPTS = -I$(CURRENT_DIR)/include \
 	-I$(CURRENT_DIR)/third_party/alsa/alsa-lib-1.1.7/include \
-	-I$(CURRENT_DIR)/third_party/sdl/SDL2-2.0.9/include 
-LINK_OPTS = -pthread -lasound -lSDL2 -L.
+	-I$(CURRENT_DIR)/third_party/sdl/SDL2-2.0.9/include \
+	-I$(CURRENT_DIR)/third_party/ffmpeg/ffmpeg-3.4.6
+LINK_OPTS = -pthread -lasound -lSDL2 -lavformat -lavcodec -lswresample -lswscale -lavutil -L.
 
 CC = $(TOOLCHAIN_DIR)/bin/arm-linux-gnueabihf-gcc
 C_FLAGS = $(COMPILE_OPTS)
@@ -15,7 +16,8 @@ HC_LIB = libhicreation.a
 ALSA_MODULE = alsa
 RADIO_MODULE = radio
 SDL_MODULE = sdl
-TEST_MODULES := $(ALSA_MODULE)-test $(RADIO_MODULE)-test $(SDL_MODULE)-test
+FF_MODULE = ff
+TEST_MODULES := $(ALSA_MODULE)-test $(RADIO_MODULE)-test $(SDL_MODULE)-test $(FF_MODULE)-test
 
 
 all: $(HC_LIB) $(TEST_MODULES)
