@@ -1,5 +1,5 @@
 CURRENT_DIR = $(shell pwd)
-TOOLCHAIN_DIR = $(CURRENT_DIR)/../toolchains/buildroot_host
+TOOLCHAIN_DIR = /home/xiangjb/project/toolchains/buildroot_host
 COMPILE_OPTS = -I$(CURRENT_DIR)/include \
 	-I$(CURRENT_DIR)/third_party/alsa/alsa-lib-1.1.7/include \
 	-I$(CURRENT_DIR)/third_party/sdl/SDL2-2.0.9/include \
@@ -28,7 +28,7 @@ test-src := $(wildcard test/*.cpp)
 # hclib-objs := $(filter-out *-test.cpp, $(CXX-objs))
 # CXX-objs = $(patsubst %.cpp, %.o, $(CXX-src))
 hclib-objs := $(hclib-src:src/%.cpp=obj/%.o)
-test-objs := $(test-src:src/%.cpp=obj/%.o)
+test-objs := $(test-src:test/%.cpp=obj/%.o)
 
 # $(ALSA_MODULE)-test: test/$(ALSA_MODULE)-test.o $(HC_LIB)
 #	$(CXX) -o $@ $^ $(LINK_OPTS)

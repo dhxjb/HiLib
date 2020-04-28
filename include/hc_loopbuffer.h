@@ -15,7 +15,7 @@ namespace HiCreation
 
         TLoopBuffer(unsigned char *buf, size_t size):
             FBuf(buf),
-            FCapcity(size), FReadIdx(0), FWriteIdx(0)
+            FCapcity(size), FReadIdx(0), FWrited(0)
         {
             if (! FBuf && size > 0)
                 FBuf = new unsigned char[size];
@@ -30,21 +30,19 @@ namespace HiCreation
         size_t Capcity() 
             { return FCapcity; }
         size_t Size() 
-            { return (FWriteIdx - FReadIdx + FCapcity) % FCapcity; }
+            { return FWrited; }
         bool IsFull()
-            { return (FWriteIdx + 1) % FCapcity == FReadIdx; }
+            { return FWrited == FCapcity; }
         bool IsEmpty()
-            { return FWriteIdx == FReadIdx; }
+            { return FWrited == 0; }
 
         ssize_t Read(unsigned char *buf, size_t count)
         {
-            size_t readable_count;
-            if (FWriteIdx == FReadIdx)
+            if (FWrited == 0)
                 return 0;
 
-            readable_count = (FWriteIdx + FCapcity - FReadIdx) % FCapcity;
-            if (count > readable_count)
-                count = readable_count;
+            if (count > FWrited)
+                count = FWrited;
 
             if (FReadIdx + count > FCapcity)
             {
@@ -56,41 +54,43 @@ namespace HiCreation
                 memcpy(buf, FBuf + FReadIdx, count);
             }
             FReadIdx = (FReadIdx + count) % FCapcity;
+            FWrited -= count;
             return count;
         }
 
         ssize_t Write(unsigned char *buf, size_t count)
         {
-            size_t writable_count;
-            writable_count = FCapcity - ((FWriteIdx - FReadIdx + FCapcity) % FCapcity);
+            size_t writable_count = FCapcity - FWrited;
+            size_t write_idx = (FReadIdx + FWrited) % FCapcity;
+
             if (writable_count == 0)
                 return 0;
-            else if (count >= writable_count)
-                count = writable_count - 1;
+            if (count >= writable_count)
+                count = writable_count;
 
-            if (FWriteIdx + count > FCapcity)
+            if (write_idx + count > FCapcity)
             {
-                memcpy(FBuf + FWriteIdx, buf, FCapcity - FWriteIdx);
-                memcpy(FBuf, buf + FCapcity - FWriteIdx, FWriteIdx + count - FCapcity);
+                memcpy(FBuf + write_idx, buf, FCapcity - write_idx);
+                memcpy(FBuf, buf + FCapcity - write_idx, write_idx + count - FCapcity);
             }
             else
             {
-                memcpy(FBuf + FWriteIdx, buf, count);
+                memcpy(FBuf + write_idx, buf, count);
             }
-            FWriteIdx = (FWriteIdx + count) % FCapcity;
+            FWrited += count;
             return count;
         }
 
         void Clear()
         {
-            FReadIdx = FWriteIdx = 0;
+            FReadIdx = FWrited = 0;
         }
 
     protected:
         unsigned char *FBuf;
         size_t FCapcity;
         size_t FReadIdx;
-        size_t FWriteIdx;
+        size_t FWrited;
     };
 };
 
