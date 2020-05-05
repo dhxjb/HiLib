@@ -12,7 +12,8 @@
                 "${workspaceFolder}/include",
                 "${workspaceFolder}/third_party/alsa/alsa-lib-1.1.7/include",
                 "${workspaceFolder}/third_party/sdl/SDL2-2.0.9/include",
-                "${workspaceFolder}/third_party/ffmpeg/ffmpeg-3.4.6"
+                "${workspaceFolder}/third_party/ffmpeg/ffmpeg-3.4.6",
+                "${workspaceFolder}/third_party/i2c-tools/i2c-tools-4.1/include"
             ]
         }
     ],

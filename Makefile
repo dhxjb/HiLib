@@ -3,8 +3,10 @@ TOOLCHAIN_DIR = /home/xiangjb/project/toolchains/buildroot_host
 COMPILE_OPTS = -I$(CURRENT_DIR)/include \
 	-I$(CURRENT_DIR)/third_party/alsa/alsa-lib-1.1.7/include \
 	-I$(CURRENT_DIR)/third_party/sdl/SDL2-2.0.9/include \
-	-I$(CURRENT_DIR)/third_party/ffmpeg/ffmpeg-3.4.6
-LINK_OPTS = -pthread -lasound -lSDL2 -lavformat -lavcodec -lswresample -lswscale -lavutil -L.
+	-I$(CURRENT_DIR)/third_party/ffmpeg/ffmpeg-3.4.6 \
+	-I$(CURRENT_DIR)/third_party/i2c-tools/i2c-tools-4.1/include 
+LINK_OPTS = -pthread -lasound -lSDL2 -lavformat -lavcodec -lswresample -lswscale -lavutil \
+			-li2c -L.
 
 CC = $(TOOLCHAIN_DIR)/bin/arm-linux-gnueabihf-gcc
 C_FLAGS = $(COMPILE_OPTS)
@@ -17,8 +19,9 @@ ALSA_MODULE = alsa
 RADIO_MODULE = radio
 SDL_MODULE = sdl
 FF_MODULE = ff
-PLAYER_MODULE = player
-TEST_MODULES := $(ALSA_MODULE)-test $(RADIO_MODULE)-test $(SDL_MODULE)-test $(FF_MODULE)-test $(PLAYER_MODULE)-test
+I2C_MODULE = i2c
+TEST_MODULES := $(ALSA_MODULE)-test $(RADIO_MODULE)-test $(SDL_MODULE)-test $(FF_MODULE)-test \
+		$(I2C_MODULE)-test
 
 
 all: $(HC_LIB) $(TEST_MODULES)
