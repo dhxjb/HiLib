@@ -16,6 +16,7 @@ namespace HiCreation
         snd_pcm_format_t format;
         uint8_t channels;
         uint32_t sample_rate;
+        uint32_t samples;
     } audio_params_t;
 
     typedef struct

@@ -3,6 +3,9 @@
 
 #include "sdl_audio.h"
 
+#define SDL_AUDIO_SAMPLES     1024
+#define MAX_AUDIO_FRAME_SIZE  192000
+
 using namespace HiCreation;
 
 typedef struct format_map_t
@@ -83,7 +86,7 @@ int TSDLAudioDev::Open(audio_params_t *params)
     FWantedSpec.format = TSDLAudioDev::ToSDLAudioFormat(params->format);
     FWantedSpec.channels = params->channels;
     FWantedSpec.freq = params->sample_rate;
-    FWantedSpec.samples = 1024;
+    FWantedSpec.samples = params->samples > 0 ? params->samples : SDL_AUDIO_SAMPLES;
     FWantedSpec.callback = TSDLAudioDev::AudioCallback;
     FWantedSpec.userdata = this;
 
@@ -119,7 +122,7 @@ int TSDLAudioPlay::Open(audio_params_t *params)
     if ((ret = inherited::Open(params)) < 0)
         return ret;
 
-    FBuffer = new TLoopBuffer(16 * FObtainedSpec.samples * FObtainedSpec.channels *
+    FBuffer = new TLoopBuffer(8 * FObtainedSpec.samples * FObtainedSpec.channels *
         SDL_AUDIO_BITSIZE(FObtainedSpec.format) / 8);
 
     if (! FBuffer)
@@ -145,13 +148,24 @@ void TSDLAudioPlay::HandleCallback(uint8_t *stream, int len)
         audio_frame_t frame;
         frame.buf = stream;
         frame.len = len;
-        if (FAudioSource->OnFillFrame(this, &frame) > 0)
-            return;
+        FAudioSource->OnFillFrame(this, &frame);
     }
-    if ((ret = FBuffer->Read(stream, len)) != len)
-        printf("buffer is null, reading:%d readed: %d\n", len, ret);
     else
-        printf("readed %d \n", ret);
+    {
+        if ((ret = FBuffer->Read(stream, len)) != len)
+        {
+            printf("buffer is null, reading:%d readed: %d\n", len, ret);
+            if (ret == 0)
+            {
+                if (FReadRetried > 4)
+                {
+                    printf("timeout, pause!\n");
+                }
+                else
+                    FReadRetried++;
+            }
+        }
+    }
 }
 
 ssize_t TSDLAudioPlay::Write(unsigned char *buf, size_t count)

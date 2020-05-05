@@ -17,7 +17,8 @@ ALSA_MODULE = alsa
 RADIO_MODULE = radio
 SDL_MODULE = sdl
 FF_MODULE = ff
-TEST_MODULES := $(ALSA_MODULE)-test $(RADIO_MODULE)-test $(SDL_MODULE)-test $(FF_MODULE)-test
+PLAYER_MODULE = player
+TEST_MODULES := $(ALSA_MODULE)-test $(RADIO_MODULE)-test $(SDL_MODULE)-test $(FF_MODULE)-test $(PLAYER_MODULE)-test
 
 
 all: $(HC_LIB) $(TEST_MODULES)

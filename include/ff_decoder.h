@@ -13,10 +13,54 @@ extern "C" {
 }
 #endif // __cplusplus
 
+#include "hc_list.h"
+#include "hc_audio.h"
+
 namespace HiCreation
 {
+    class FFDecoder;
+
+    class IPacketSource
+    {
+    public:
+        
+    };
+
+    class IPacketSink
+    {
+    public:
+        
+    };
+
+    class TAVFormat
+    {
+    public:
+        int Open();
+
+        FFDecoder* Decoder(AVMediaType type);
+        
+    protected:
+        AVPacket FPkt;
+        TList<AVPacket> FAudioQueue;
+        TList<AVPacket> FVideoQueue; 
+        TList<AVPacket> FSubQueue;
+    };
+
     class FFDecoder
     {
+    public:
+
+
+
+    protected:
+        AVCodecContext *FCodecCtx;
+        AVFrame FFrame;
+    };
+
+    class FFAudioDecoder : IAudioSource
+    {
+    public:
+
     };
 };
 

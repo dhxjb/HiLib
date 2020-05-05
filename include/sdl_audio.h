@@ -67,7 +67,7 @@ namespace HiCreation
         typedef TSDLAudioDev inherited;
     public:
         TSDLAudioPlay(const char *name):
-            TSDLAudioDev(name, false), FBuffer(NULL)
+            TSDLAudioDev(name, false), FBuffer(NULL), FAudioSource(NULL)
         {}
 
         uint32_t BufferSize() 
@@ -95,6 +95,7 @@ namespace HiCreation
     private:
         TLoopBuffer *FBuffer;
         IAudioSource *FAudioSource;
+        int FReadRetried;
     };
 
     class TSDLAudioRecord : public TSDLAudioDev, public TAudioSource
