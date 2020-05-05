@@ -36,7 +36,7 @@ namespace HiCreation
 
         virtual bool IsRunning() { return FHandle > 0; }
 
-        virtual int Open(int flag)
+        virtual int Open(int flag = O_RDWR)
         { 
             if (FHandle <= 0)
                 FHandle = open(FName, flag);
