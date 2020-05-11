@@ -3,10 +3,10 @@
 
 #include <unistd.h>
 #include <stdint.h>
-#include <string.h>
 #include <errno.h>
 #include <fcntl.h>
 #include <sys/ioctl.h>
+#include <string>
 
 namespace HiCreation
 {
@@ -14,23 +14,19 @@ namespace HiCreation
     {
     public:
         TDevFile(const char *name):
-            FHandle(-1)
-        {
-            int len = strlen(name);
-            if (len > 0)
-            {
-                FName = new char[len];
-                memcpy(FName, name, len);
-            }
-        }
+            FName(name)
+        {}
+
+        TDevFile(const std::string name):
+            FName(name)
+        {}
 
         virtual ~TDevFile()
         {
             Close();
-            if (FName) delete(FName);
         }
 
-        const char* Name() const { return FName; }
+        const char* Name() const { return FName.c_str(); }
 
         int Fd() { return FHandle; }
 
@@ -39,7 +35,7 @@ namespace HiCreation
         virtual int Open(int flag = O_RDWR)
         { 
             if (FHandle <= 0)
-                FHandle = open(FName, flag);
+                FHandle = open(FName.c_str(), flag);
             return FHandle;
         }
 
@@ -75,7 +71,7 @@ namespace HiCreation
     
     protected:
         int FHandle;
-        char *FName;
+        std::string FName;
     };
 };
 

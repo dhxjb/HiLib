@@ -1,7 +1,7 @@
 #ifndef __HC_I2C_H__
 #define __HC_I2C_H__
 
-#include <string.h>
+#include <string>
 #include <stdio.h>
 #include <linux/i2c.h>
 #include <linux/i2c-dev.h>
@@ -26,12 +26,8 @@ namespace HiCreation
         typedef TDevFile inherited;
     public:
         TI2CDev(uint8_t bus, uint8_t addr):
-            TDevFile(NULL), FAddr(addr)
-        {
-            FName = new char[20];
-            memset(FName, 0, sizeof(FName));
-            sprintf(FName, "/dev/i2c-%d", bus);
-        }
+            TDevFile(std::string("/dev/i2c-").append(std::to_string(bus))), FAddr(addr)
+        {}
 
         TI2CDev(const char *bus_name, uint8_t addr):
             TDevFile(bus_name), FAddr(addr)

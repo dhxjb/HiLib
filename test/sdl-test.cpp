@@ -140,6 +140,7 @@ int main(int argc, char **argv)
     audio_params.format = SND_PCM_FORMAT_S16_LE;
     audio_params.channels = 2;
     audio_params.sample_rate = 48000;
+    audio_params.samples = 0;
 
     if (AudioRecord->Open(&audio_params) < 0)
     {
@@ -157,7 +158,7 @@ int main(int argc, char **argv)
         audio_params.sample_rate, audio_params.channels, audio_params.format);
 
     AudioRecord->AddOrUpdateSink(AudioPlay);
-    AudioRecord->AddOrUpdateSink(AudioRecorder);
+    // AudioRecord->AddOrUpdateSink(AudioRecorder);
 
     AudioRecord->Pause(0);
     AudioPlay->Pause(0);

@@ -1,6 +1,7 @@
 #ifndef __HC_V4L2_DEVICE_H__
 #define __HC_V4L2_DEVICE_H__
 
+#include <string>
 #include <linux/videodev2.h>
 
 #include "hc_device.h"
@@ -13,8 +14,16 @@ namespace HiCreation
     {
         typedef TDevFile inherited;
     public:
-        TV4L2Device(const char *dev):
-            TDevFile(dev)
+        static TV4L2Device *RadioDev(uint8_t radio_no)
+            { return new TV4L2Device(std::string("/dev/radio").append(std::to_string(radio_no))); }
+        static TV4L2Device *VideoDev(uint8_t video_no)
+            { return new TV4L2Device(std::string("/dev/video").append(std::to_string(video_no))); }
+    public:
+        TV4L2Device(const char *name):
+            inherited(name)
+        {}
+        TV4L2Device(const std::string name):
+            inherited(name)
         {}
 
         int QueryCap(struct v4l2_capability *cap)

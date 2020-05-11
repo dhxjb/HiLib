@@ -3,7 +3,7 @@
 
 #include <stdint.h>
 #include <errno.h>
-#include "SDL.h"
+#include <SDL.h>
 
 #include "hc_loopbuffer.h"
 #include "hc_audio.h"
@@ -33,12 +33,15 @@ namespace HiCreation
         virtual void Close();
         virtual int Pause(int enable);
 
+        void Params(audio_params_t *params);
         snd_pcm_format_t Format() 
             { return TSDLAudioDev::ToAudioFormat(FObtainedSpec.format); }
         uint32_t SampleRate() 
             { return FObtainedSpec.freq; }
         uint8_t Channels()
             { return FObtainedSpec.channels; }
+        uint32_t Samples()
+            { return FObtainedSpec.samples; }
 
     protected:
         int Open(audio_params_t *params, bool isrecord)

@@ -3,8 +3,9 @@
 
 #include "sdl_audio.h"
 
-#define SDL_AUDIO_SAMPLES     1024
-#define MAX_AUDIO_FRAME_SIZE  192000
+#define DEFAULT_SDL_AUDIO_SAMPLES     1024
+#define MAX_SDL_AUDIO_SAMPLES         8192
+#define MAX_AUDIO_FRAME_SIZE          192000
 
 using namespace HiCreation;
 
@@ -86,9 +87,11 @@ int TSDLAudioDev::Open(audio_params_t *params)
     FWantedSpec.format = TSDLAudioDev::ToSDLAudioFormat(params->format);
     FWantedSpec.channels = params->channels;
     FWantedSpec.freq = params->sample_rate;
-    FWantedSpec.samples = params->samples > 0 ? params->samples : SDL_AUDIO_SAMPLES;
+    FWantedSpec.samples = params->samples > 0 ? params->samples : DEFAULT_SDL_AUDIO_SAMPLES;
     FWantedSpec.callback = TSDLAudioDev::AudioCallback;
     FWantedSpec.userdata = this;
+    if (FWantedSpec.samples > MAX_SDL_AUDIO_SAMPLES)
+        FWantedSpec.samples = MAX_SDL_AUDIO_SAMPLES;
 
     FDevId = SDL_OpenAudioDevice(SDL_GetAudioDeviceName(FDevIdx, FIsRecord),
         FIsRecord, &FWantedSpec, &FObtainedSpec, SDL_AUDIO_ALLOW_ANY_CHANGE);
@@ -98,11 +101,19 @@ int TSDLAudioDev::Open(audio_params_t *params)
             TSDLAudioDev::DeviceName(FDevIdx, FIsRecord), FDevId);
         return FDevId;
     }
-
-    params->format = TSDLAudioDev::ToAudioFormat(FObtainedSpec.format);
-    params->channels = FObtainedSpec.channels;
-    params->sample_rate = FObtainedSpec.freq;
+    // Params(params);
     return 0;
+}
+
+void TSDLAudioDev::Params(audio_params_t *params)
+{
+    if (params)
+    {
+        params->format = TSDLAudioDev::ToAudioFormat(FObtainedSpec.format);
+        params->channels = FObtainedSpec.channels;
+        params->sample_rate = FObtainedSpec.freq;
+        params->samples = FObtainedSpec.samples;
+    }
 }
 
 void TSDLAudioDev::Close()
@@ -170,7 +181,9 @@ void TSDLAudioPlay::HandleCallback(uint8_t *stream, int len)
 
 ssize_t TSDLAudioPlay::Write(unsigned char *buf, size_t count)
 {
-    size_t ret;     
+    size_t ret;
+    if (! FBuffer)
+        return -ENOMEM;     
     if ((ret = FBuffer->Write(buf, count)) != count)
         printf("buffer not enough, writing: %d writed: %d\n", count, ret);
 

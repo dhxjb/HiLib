@@ -114,7 +114,10 @@ int TV4L2RadioCtrl::Tune(uint32_t freq, RADIO_status_t *status)
         printf("set freq err: %d \n", ret);
         return ret;
     }
-    return QueryStat(status);
+    if (status)
+        return QueryStat(status);
+    else
+        return 0;
 }
 
 int TV4L2RadioCtrl::Seek(RADIO_seekdir_t dir, RADIO_status_t *status)
@@ -130,7 +133,10 @@ int TV4L2RadioCtrl::Seek(RADIO_seekdir_t dir, RADIO_status_t *status)
         printf("seek freq  %d \n", ret);
         return ret;
     }
-    return QueryStat(status);
+    if (status)
+        return QueryStat(status);
+    else
+        return 0;
 }
 
 int TV4L2RadioCtrl::SWPower(int enable)

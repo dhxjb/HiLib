@@ -28,6 +28,14 @@ namespace HiCreation
         SEEK_DOWN
     };
 
+    enum RADIO_modulation_t
+    {
+        RADIO_FM,
+        RADIO_AM,
+        RADIO_LW,
+        RADIO_SW
+    };
+
     class TV4L2RadioCtrl
     {
     public:
@@ -36,7 +44,9 @@ namespace HiCreation
             FCurrFreq(0), Fac(16000)
         {}
 
-        /*private operation, when driver not supported, ngnore*/
+        TV4L2Device *RadioDev() { return FRadioDev; }
+
+        /*private operation, when driver not supported, ignore*/
         int StartUp();
         void ShutDown();
         int Reset();
