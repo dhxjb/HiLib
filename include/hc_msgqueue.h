@@ -92,6 +92,7 @@ namespace HiCreation
 
         virtual ~TMsgQueueThread()
         {
+            this->Stop();
             sem_destroy(&FMsgSem);
         }
 

@@ -43,6 +43,7 @@ namespace HiCreation
         unsigned int sample_rate;
     } alsa_params_t;
 
+    /*alsa pcm*/
     class TALSADevice
     {
     public:
