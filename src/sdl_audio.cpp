@@ -165,17 +165,22 @@ void TSDLAudioPlay::HandleCallback(uint8_t *stream, int len)
     {
         if ((ret = FBuffer->Read(stream, len)) != len)
         {
-            printf("buffer is null, reading:%d readed: %d\n", len, ret);
+            if (FReadRetried == 0)
+                printf("buffer is null, reading:%d readed: %d\n", len, ret);
             if (ret == 0)
             {
-                if (FReadRetried > 4)
+                if (FReadRetried == 4)
                 {
                     printf("timeout, pause!\n");
+                    // To do...
                 }
                 else
                     FReadRetried++;
             }
+            memset(stream + ret, 0, len - ret);
         }
+        else 
+            FReadRetried = 0;
     }
 }
 
@@ -185,7 +190,9 @@ ssize_t TSDLAudioPlay::Write(unsigned char *buf, size_t count)
     if (! FBuffer)
         return -ENOMEM;     
     if ((ret = FBuffer->Write(buf, count)) != count)
-        printf("buffer not enough, writing: %d writed: %d\n", count, ret);
+    {
+        // printf("buffer not enough, writing: %d writed: %d\n", count, ret);
+    }
 
     return ret;
 }

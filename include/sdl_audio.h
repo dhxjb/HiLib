@@ -30,7 +30,7 @@ namespace HiCreation
         const char *Name() { return TSDLAudioDev::DeviceName(FDevIdx, FIsRecord); }
 
         virtual int Open(audio_params_t *params);
-        virtual void Close();
+        virtual void Close() override;
         virtual int Pause(int enable);
 
         void Params(audio_params_t *params);
@@ -73,6 +73,9 @@ namespace HiCreation
             TSDLAudioDev(name, false), FBuffer(NULL), FAudioSource(NULL)
         {}
 
+        virtual ~TSDLAudioPlay()
+            { Close(); }
+
         uint32_t BufferSize() 
         { 
             if(FBuffer)
@@ -82,7 +85,7 @@ namespace HiCreation
         }
 
         virtual int Open(audio_params_t *params);
-        virtual void Close();
+        virtual void Close() override;
 
         ssize_t Write(unsigned char *buf, size_t count);
 

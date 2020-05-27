@@ -26,6 +26,7 @@ namespace HiCreation
             pthread_mutex_destroy(&FMutex);
         }
 
+        bool IsEmpty() { return Size() == 0; }
         size_t Capacity() { return CAPACITY; }
         size_t Size() 
         {
