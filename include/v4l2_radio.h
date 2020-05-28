@@ -6,9 +6,6 @@
 
 #define DEFAULT_RADIO_DEV_FILE  "/dev/radio0"
 
-#define V4L2_CID_PRIVATE_RADIO_POWER   (V4L2_CID_USER_BASE + 0x1000)
-#define V4L2_CID_PRIVATE_RADIO_SWITCH  (V4L2_CID_USER_BASE + 0x1001)
-
 namespace HiCreation
 {
     typedef struct RADIO_status_t
@@ -36,33 +33,40 @@ namespace HiCreation
         RADIO_SW
     };
 
+    enum RADIO_output_t
+    {
+        ANALOG_OUTPUT,
+        DIGITAL_OUTPUT,
+    };
+
     class TV4L2RadioCtrl
     {
     public:
         TV4L2RadioCtrl(TV4L2Device *dev):
+            FMode(RADIO_FM),
             FRadioDev(dev), 
             FCurrFreq(0), Fac(16000)
         {}
 
         TV4L2Device *RadioDev() { return FRadioDev; }
 
+        int Modulation() { return FMode; }
+
         /*private operation, when driver not supported, ignore*/
-        int StartUp();
-        void ShutDown();
-        int Reset();
+        virtual int StartUp(RADIO_modulation_t mode);
+        virtual void ShutDown();
 
         uint32_t Freq();
         int QueryStat(RADIO_status_t *status);
 
         /*freq is kHz*/
         int Tune(uint32_t freq, RADIO_status_t *status);
-        int Seek(RADIO_seekdir_t dir, RADIO_status_t *status);
+        int Seek(RADIO_seekdir_t dir, RADIO_status_t *status, bool wrap_around = true);
+
+        int Ctrl(int id, int value);
 
     protected:
-        int SWPower(int enable);
-        int HWPower(int enable);
-
-    protected:
+        RADIO_modulation_t FMode;
         TV4L2Device *FRadioDev;
         uint32_t FCurrFreq;
         double Fac;

@@ -177,6 +177,7 @@ void TSDLAudioPlay::HandleCallback(uint8_t *stream, int len)
                 else
                     FReadRetried++;
             }
+            FReadRetried %= 20;
             memset(stream + ret, 0, len - ret);
         }
         else 

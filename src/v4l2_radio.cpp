@@ -7,7 +7,7 @@
 
 using namespace HiCreation;
 
-int TV4L2RadioCtrl::StartUp()
+int TV4L2RadioCtrl::StartUp(RADIO_modulation_t mode)
 {
     int ret;
     struct v4l2_tuner vtuner;
@@ -16,9 +16,6 @@ int TV4L2RadioCtrl::StartUp()
         printf("%s open err: %d\n", FRadioDev->Name(), ret);
         return ret;
     }
-
-    /*ignore private ctrl err*/
-    SWPower(1);
 
     memset(&vtuner, 0, sizeof(struct v4l2_tuner));
     vtuner.index = 0;
@@ -35,6 +32,7 @@ int TV4L2RadioCtrl::StartUp()
     else
         Fac = 16;
 
+    FMode = mode;
     printf("fac: %f \n", Fac);
     return 0;
 }
@@ -44,23 +42,7 @@ void TV4L2RadioCtrl::ShutDown()
     if (! FRadioDev->IsRunning())
         return;
 
-    /*ignore private ctrl err*/
-    SWPower(0);
-}
-
-int TV4L2RadioCtrl::Reset()
-{
-    int ret;
-
-    if ((ret = HWPower(0)) < 0)
-        return ret;
-
-    usleep(200 * 1000);
-
-    if ((ret = HWPower(1)) < 0)
-        return ret;
-
-    return 0;
+    FRadioDev->Close();
 }
 
 uint32_t TV4L2RadioCtrl::Freq()
@@ -120,7 +102,7 @@ int TV4L2RadioCtrl::Tune(uint32_t freq, RADIO_status_t *status)
         return 0;
 }
 
-int TV4L2RadioCtrl::Seek(RADIO_seekdir_t dir, RADIO_status_t *status)
+int TV4L2RadioCtrl::Seek(RADIO_seekdir_t dir, RADIO_status_t *status, bool wrap_around)
 {
     int ret;
     struct v4l2_hw_freq_seek vseek;
@@ -128,6 +110,7 @@ int TV4L2RadioCtrl::Seek(RADIO_seekdir_t dir, RADIO_status_t *status)
     vseek.tuner = 0;
     vseek.type = V4L2_TUNER_RADIO;
     vseek.seek_upward = dir == SEEK_UP ? 1 : 0;
+    vseek.wrap_around = wrap_around ? 1 : 0;
     if ((ret = FRadioDev->SeekFreq(&vseek)) != 0)
     {
         printf("seek freq  %d \n", ret);
@@ -139,30 +122,16 @@ int TV4L2RadioCtrl::Seek(RADIO_seekdir_t dir, RADIO_status_t *status)
         return 0;
 }
 
-int TV4L2RadioCtrl::SWPower(int enable)
+int TV4L2RadioCtrl::Ctrl(int id, int value)
 {
     int ret;
     struct v4l2_control ctrl;
     memset(&ctrl, 0, sizeof(ctrl));
-    ctrl.id = V4L2_CID_PRIVATE_RADIO_SWITCH;
-    ctrl.value = enable > 0 ? 1 : 0;
+    ctrl.id = id;
+    ctrl.value = value;
 
     if ((ret = FRadioDev->SetCtrl(&ctrl)) != 0)
         printf("radio private switch ctrl err: %d! \n", ret);
-
-    return ret;
-}
-
-int TV4L2RadioCtrl::HWPower(int enable)
-{
-    int ret;
-    struct v4l2_control ctrl;
-    memset(&ctrl, 0, sizeof(ctrl));
-    ctrl.id = V4L2_CID_PRIVATE_RADIO_POWER;
-    ctrl.value = enable > 0 ? 1 : 0;
-
-    if ((ret = FRadioDev->SetCtrl(&ctrl)) != 0)
-        printf("radio private power ctrl err: %d! \n", ret);
 
     return ret;
 }
