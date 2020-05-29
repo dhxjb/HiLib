@@ -41,8 +41,6 @@ void TV4L2RadioCtrl::ShutDown()
 {
     if (! FRadioDev->IsRunning())
         return;
-
-    FRadioDev->Close();
 }
 
 uint32_t TV4L2RadioCtrl::Freq()
