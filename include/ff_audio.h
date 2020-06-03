@@ -4,13 +4,12 @@
 #include "ff_decoder.h"
 #include "hc_thread.h"
 #include "sdl_audio.h"
+#include "audio_mixer.h"
 
 namespace HiCreation
 {
-
     /*Need To do struct change from FFDecoder*/
-
-    class FFAudioPlayer : protected TThread
+    class FFAudioPlayer : public IAudioSource, protected TThread
     {
         typedef enum
         {
@@ -22,8 +21,12 @@ namespace HiCreation
             STOPPING,
             STOPPED,
         } state_t;
-    public:
 
+    public:
+        static FFAudioPlayer* InstRef();
+        static void Release();
+        
+    public:
         FFAudioPlayer();
         virtual ~FFAudioPlayer();
 
@@ -35,19 +38,26 @@ namespace HiCreation
         bool IsPaused()
             { return FState == PAUSED; }
         bool IsStopped()
-            { return FState == STOPPED; }
+            { return FState != RUNNING && FState != PAUSED; }
 
         int Load(const char *file);
-        int Rewind()
-            { return 0;}
-        int Play();
+        int Rewind();
+        int Play(uint8_t loop = 1);
         int Pause();
         int Stop();
+
+        virtual int AddOrUpdateSink(IAudioSink *sink) override;
+        virtual void RemoveSink(IAudioSink *sink) override;
+
+        /*for sink to pull actively*/
+        virtual int OnFillFrame(IAudioSink *sink, audio_frame_t *frame) override
+            { return 0; }
 
     protected:
         virtual void Execute(void);
 
     private:
+        int FLoop;
         state_t FState;
         int FAudioIdx;
         bool FThreadDone;
@@ -60,7 +70,9 @@ namespace HiCreation
         AVFrame *FFrame; 
         AVPacket FPkt;
 
-        TSDLAudioPlay *FAudioPlay;
+        TAudioMixer *FAudioMixer;
+        IAudioSink *FAudioSink;
+        bool FPausedByRace;
         audio_params_t FAudioParams;
     };
 };

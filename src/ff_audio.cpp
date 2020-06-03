@@ -4,17 +4,49 @@
 
 using namespace HiCreation;
 
+static int RefCount = 0;
+static FFAudioPlayer *FPlayerInst;
+
+FFAudioPlayer* FFAudioPlayer::InstRef()
+{
+    if (! FPlayerInst)
+    {
+        FPlayerInst = new FFAudioPlayer();
+        FPlayerInst->Init();
+    }
+    if (FPlayerInst)
+    {
+        RefCount++;
+        return FPlayerInst;
+    }
+    else 
+        return NULL;
+}
+
+void FFAudioPlayer::Release()
+{
+    if (RefCount <= 0)
+        return;
+    RefCount--;
+    if (RefCount == 0)
+    {
+        delete FPlayerInst;
+        FPlayerInst = NULL;
+    }
+}
+
 FFAudioPlayer::FFAudioPlayer():
-    FState(UNKOWN), FAudioIdx(-1), FThreadDone(true),
+    FLoop(1), FState(UNKOWN), FAudioIdx(-1), FThreadDone(true),
     FFormatCtx(NULL), FCodecCtx(NULL),
     FSwrCtx(NULL), FBuf(NULL), FBufSize(0), FBufReaded(0), FFrame(NULL),
-    FAudioPlay(NULL)
+    FAudioMixer(TAudioMixer::InstRef()), FAudioSink(NULL), FPausedByRace(false)
 {
 }
 
 FFAudioPlayer::~FFAudioPlayer()
 {
     Stop();
+    TAudioMixer::Release();
 }
 
 int FFAudioPlayer::Init()
@@ -86,8 +118,7 @@ int FFAudioPlayer::Load(const char *file)
     FAudioParams.sample_rate = FCodecCtx->sample_rate;
     FAudioParams.samples = FCodecCtx->frame_size > 0 ? FCodecCtx->frame_size : 1024;
     
-    FAudioPlay = new TSDLAudioPlay(PLAY_DEVICE_NAME);
-    if (FAudioPlay->Open(&FAudioParams) < 0)
+    if (FAudioMixer->Open(&FAudioParams) < 0)
     {
         printf("Audio play dev open err!\n");
         return -ENODEV;
@@ -107,7 +138,18 @@ int FFAudioPlayer::Load(const char *file)
     return 0;
 }
 
-int FFAudioPlayer::Play()
+int FFAudioPlayer::Rewind()
+{
+    if (IsStopped())
+        return Play();
+
+    Pause();
+    avformat_seek_file(FFormatCtx, -1, INT64_MIN, 
+        FFormatCtx->streams[FAudioIdx]->start_time, INT64_MAX, 0);
+    return Play();
+}
+
+int FFAudioPlayer::Play(uint8_t loop)
 {
     if (FState == RUNNING)
         return 0;
@@ -119,9 +161,14 @@ int FFAudioPlayer::Play()
         return -1;
     }
     FState = RUNNING;
+    if (loop >= 1)
+        FLoop = loop;
+    else 
+        FLoop = 1;
     TThread::Start();
     usleep(20 * 1000);
-    FAudioPlay->Pause(0);
+    FAudioMixer->Add(this);
+    FAudioMixer->Pause(this, 0);
 }
 
 int FFAudioPlayer::Pause()
@@ -129,7 +176,7 @@ int FFAudioPlayer::Pause()
     if (FState == RUNNING)
     {
         FState = PAUSED;
-        FAudioPlay->Pause(1);
+        FAudioMixer->Pause(this, 1);
         SetTerminating();
     }
     return 0;
@@ -143,21 +190,15 @@ int FFAudioPlayer::Stop()
         return -EBUSY;
 
     FState = STOPPING;
-    FAudioPlay->Pause(1);
     SetTerminating();
     while (! FThreadDone)
         usleep(1000);
 
-    if (FAudioPlay) 
-        delete FAudioPlay;
+    FAudioMixer->Remove(this);
     if (FSwrCtx)
         swr_free(&FSwrCtx);
     if (FCodecCtx)
         avcodec_close(FCodecCtx);
-    // if (FCodecCtx)
-    //     avcodec_free_context(&FCodecCtx);
-    // if (FFormatCtx)
-    //     avformat_free_context(FFormatCtx);
     if (FFormatCtx)
         avformat_close_input(&FFormatCtx);
     if (FFrame)
@@ -173,6 +214,30 @@ int FFAudioPlayer::Stop()
     FState = STOPPED;
 }
 
+int FFAudioPlayer::AddOrUpdateSink(IAudioSink *sink)
+{
+    FAudioSink = sink;
+    if (FPausedByRace)
+    {
+        if (IsPaused())
+            Play();
+        FPausedByRace = false;
+    }
+}
+
+void FFAudioPlayer::RemoveSink(IAudioSink *sink)
+{
+    if (FAudioSink == sink)
+    {
+        FAudioSink = NULL;
+        if (IsRunning())
+        {
+            Pause();
+            FPausedByRace = true;
+        }
+    }
+}
+
 void FFAudioPlayer::Execute(void)
 {
     int ret;
@@ -181,6 +246,7 @@ void FFAudioPlayer::Execute(void)
     int writed;
     AVFrame *frame = FFrame;
     AVPacket *pkt = &FPkt;
+    int64_t stream_start_time = FFormatCtx->streams[FAudioIdx]->start_time;
     FThreadDone = false;
 
     while (FState == RUNNING)
@@ -188,7 +254,7 @@ void FFAudioPlayer::Execute(void)
         while (FBufSize - FBufReaded > 0 && FState == RUNNING)
         {
             writing = FBufSize - FBufReaded;
-            writed = FAudioPlay->Write(FBuf + FBufReaded, writing);
+            writed = FAudioMixer->Write(FBuf + FBufReaded, writing);
             FBufReaded += writed;
             if (writed != writing && FState == RUNNING)
                 usleep(10 * 1000);
@@ -200,7 +266,15 @@ void FFAudioPlayer::Execute(void)
         if (ret < 0)
         {
             printf("av_read_frame err: %d \n", ret);
-            break;
+            FLoop --;
+            if (FLoop > 0)
+            {
+                ret = avformat_seek_file(FFormatCtx, -1, INT64_MIN, stream_start_time, INT64_MAX, 0);
+                printf("loop play: %d ret: %d \n", FLoop, ret);
+                continue;
+            }
+            else 
+                break;
         }
 
         if (pkt->stream_index != FAudioIdx)

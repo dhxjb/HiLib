@@ -42,7 +42,7 @@ int main(int argc, char **argv)
 
     RadioCtrl->ShutDown();
     usleep(1000);
-    if (RadioCtrl->StartUp() != 0)
+    if (RadioCtrl->StartUp(RADIO_FM) != 0)
     {
         printf("Radio StartUp failed\n");
         goto ERR_DEV;
@@ -65,13 +65,8 @@ int main(int argc, char **argv)
     RadioCtrl->ShutDown();
     usleep(1000);
 
-    if (RadioCtrl->Reset() != 0)
-    {
-        printf("Shutdown failed\n");
-        goto ERR_DEV;
-    }
     usleep(100 * 1000);
-    if (RadioCtrl->StartUp() != 0)
+    if (RadioCtrl->StartUp(RADIO_FM) != 0)
     {
         printf("Radio StartUp failed\n");
         goto ERR_DEV;

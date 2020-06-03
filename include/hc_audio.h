@@ -27,6 +27,17 @@ namespace HiCreation
         uint64_t pts;
     } audio_frame_t;
 
+    typedef enum
+    {
+        AUDIO_STATE_UNKOWN,
+        AUDIO_STATE_OPEN,
+        AUDIO_STATE_PREPARED,
+        AUDIO_STATE_RUNNING,
+        AUDIO_STATE_XRUN,
+        AUDIO_STATE_PAUSED,
+        AUDIO_STATE_CLOSED
+    } audio_state_t;
+
     /*Audio Source ----> Sink*/
     /*interface with two way access, source active pushed or sink active pulled */
     /*implement with either or both*/
@@ -55,6 +66,7 @@ namespace HiCreation
         virtual int Open(audio_params_t *params, bool isrecord) = 0;
         virtual void Close() = 0;
 
+        virtual int State() = 0;
         virtual int Pause(int enable) = 0;
 
         virtual const char *Name() = 0;
@@ -64,6 +76,7 @@ namespace HiCreation
 
         virtual uint32_t BufferSize() = 0;
 
+        virtual void Clear() {}
         virtual ssize_t Read(unsigned char *buf, size_t count) = 0;
         virtual ssize_t Write(unsigned char *buf, size_t count) = 0;
     };

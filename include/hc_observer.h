@@ -16,6 +16,8 @@ namespace HiCreation
     public:
         virtual void AddObserver(IObserver *observer) = 0;
         virtual void DeleteObserver(IObserver *observer) = 0;
+        
+    protected:
         virtual void Notify(void *arg);
     };
 
@@ -39,7 +41,8 @@ namespace HiCreation
             }
         }
 
-        virtual void Notify(void *arg)
+    protected:
+        virtual void Notify(void *arg) override
         {
             if (FObservers.IsEmpty())
                 return;

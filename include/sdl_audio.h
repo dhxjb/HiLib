@@ -29,9 +29,11 @@ namespace HiCreation
 
         const char *Name() { return TSDLAudioDev::DeviceName(FDevIdx, FIsRecord); }
 
+        virtual int State() override
+            { return FState;}
         virtual int Open(audio_params_t *params);
         virtual void Close() override;
-        virtual int Pause(int enable);
+        virtual int Pause(int enable) override;
 
         void Params(audio_params_t *params);
         snd_pcm_format_t Format() 
@@ -44,7 +46,7 @@ namespace HiCreation
             { return FObtainedSpec.samples; }
 
     protected:
-        int Open(audio_params_t *params, bool isrecord)
+        int Open(audio_params_t *params, bool isrecord) override
             { return Open(params); }
 
         static inline void AudioCallback(void *data, uint8_t *stream, int len)
@@ -61,6 +63,7 @@ namespace HiCreation
         bool FIsRecord;
         int FDevIdx;
         int FDevId;
+        int FState;
         SDL_AudioSpec FWantedSpec;
         SDL_AudioSpec FObtainedSpec;
     };
@@ -87,13 +90,15 @@ namespace HiCreation
         virtual int Open(audio_params_t *params);
         virtual void Close() override;
 
-        ssize_t Write(unsigned char *buf, size_t count);
+        virtual void Clear() override;
+        virtual ssize_t Write(unsigned char *buf, size_t count) override;
 
         virtual void OnFrame(audio_frame_t *frame)
             { Write(frame->buf, frame->len); }
 
         virtual void SetSource(IAudioSource *source)
             { FAudioSource = source; }
+
     protected:
         void HandleCallback(uint8_t *stream, int len);
         ssize_t Read(unsigned char *buf, size_t count) { return -EACCES; }

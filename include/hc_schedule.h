@@ -70,8 +70,7 @@ namespace HiCreation
             FLastExecuteDT = dt + diff;
         }
 
-    private:
-        bool InternalExecute(const TDateTime &dt)
+        virtual bool InternalExecute(const TDateTime &dt)
         {
             if (NeedExecute(dt))
             {
@@ -83,6 +82,7 @@ namespace HiCreation
                 return false;
         }
 
+    private:
         bool NeedExecute(const TDateTime &dt) const
         {
             if (FInterval == 0)
@@ -90,7 +90,7 @@ namespace HiCreation
             if (FDensity == intvOnce)
                 return FLastExecuteDT.IsNull() && (dt >= TDateTime(FInterval));
 
-            int second_diff = SecondsBetween(dt, FLastExecuteDT);
+            uint32_t second_diff = SecondsBetween(dt, FLastExecuteDT);
             if (second_diff <= 0)   // schedule least 1 second
                 return false;
 
@@ -114,7 +114,6 @@ namespace HiCreation
         TDateTime FLastExecuteDT;
     };
 
-
     class TScheduleList: public TList<TSchedule *>
     {
         typedef TList<TSchedule *> inherited;
@@ -126,11 +125,6 @@ namespace HiCreation
             TDateTime ts = TDateTime(TS_2000);
             if (TDateTime::Now() < ts)
                 TDateTime::UpdateSystemTime(ts);
-        }
-
-        virtual ~TScheduleList()
-        {
-            Clear();
         }
 
         void Execute(void)
@@ -147,21 +141,12 @@ namespace HiCreation
             }
         }
 
-        void Clear()
-        {
-            TScheduleList::Iterator it = Begin();
-            while (it != End())
-            {
-                Remove(it);
-            }
-        }
-
         virtual void Remove(Iterator &it)
         {
-            TSchedule *schedule = *Extract(it);
-
-            if (schedule)
-                delete schedule;
+            TSchedule **schedule = Extract(it);
+            Release(schedule);
+            // if (schedule)
+            //     delete schedule;
         }
 
         virtual void Add(TSchedule *Schedule)

@@ -67,7 +67,7 @@ int TSDLAudioDev::GetDeviceIdx(const char *dev_name)
 }
 
 TSDLAudioDev::TSDLAudioDev(const char *dev_name, bool isrecord):
-    FIsRecord(isrecord), FDevId(-1)
+    FIsRecord(isrecord), FDevId(-1), FState(AUDIO_STATE_UNKOWN)
 {
     if (TSDLAudioDev::Init() < 0)
         printf("sdl init failed\n");
@@ -84,6 +84,9 @@ TSDLAudioDev::~TSDLAudioDev()
 
 int TSDLAudioDev::Open(audio_params_t *params)
 {
+    if (FState != AUDIO_STATE_UNKOWN && FState != AUDIO_STATE_CLOSED)
+        return -1;
+
     FWantedSpec.format = TSDLAudioDev::ToSDLAudioFormat(params->format);
     FWantedSpec.channels = params->channels;
     FWantedSpec.freq = params->sample_rate;
@@ -101,6 +104,7 @@ int TSDLAudioDev::Open(audio_params_t *params)
             TSDLAudioDev::DeviceName(FDevIdx, FIsRecord), FDevId);
         return FDevId;
     }
+    FState = AUDIO_STATE_OPEN;
     // Params(params);
     return 0;
 }
@@ -119,11 +123,16 @@ void TSDLAudioDev::Params(audio_params_t *params)
 void TSDLAudioDev::Close()
 {
     SDL_CloseAudioDevice(FDevId);
+    FState = AUDIO_STATE_CLOSED;
 }
 
 int TSDLAudioDev::Pause(int enable)
 {
     SDL_PauseAudioDevice(FDevId, enable > 0 ? SDL_TRUE : SDL_FALSE);
+    if (enable)
+        FState = AUDIO_STATE_PAUSED;
+    else 
+        FState = AUDIO_STATE_RUNNING;
     return 0;
 }
 
@@ -183,6 +192,12 @@ void TSDLAudioPlay::HandleCallback(uint8_t *stream, int len)
         else 
             FReadRetried = 0;
     }
+}
+
+void TSDLAudioPlay::Clear()
+{
+    if (FBuffer)
+        FBuffer->Clear();
 }
 
 ssize_t TSDLAudioPlay::Write(unsigned char *buf, size_t count)
