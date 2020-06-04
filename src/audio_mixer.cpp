@@ -49,6 +49,7 @@ int TAudioMixer::Open(audio_params_t *params)
         default_params.format = SND_PCM_FORMAT_S16_LE;
         default_params.channels = 2;
         default_params.sample_rate = 44100;
+        default_params.samples = 1024;
         return inherited::Open(&default_params);
     }
     else

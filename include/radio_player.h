@@ -23,12 +23,13 @@ namespace HiCreation
         int Open(audio_params_t *audio_params)
         {
             int ret;
+            audio_params_t radio_params;
             ret = FAudioMixer->Open(audio_params);
             if (ret < 0)
                 return ret;
             
-            FAudioMixer->Params(audio_params);
-            return FRadioDev->Open(audio_params);
+            FAudioMixer->Params(&radio_params);
+            return FRadioDev->Open(&radio_params);
         }
 
         void Close()

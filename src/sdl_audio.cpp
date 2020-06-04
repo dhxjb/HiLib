@@ -180,7 +180,7 @@ void TSDLAudioPlay::HandleCallback(uint8_t *stream, int len)
             {
                 if (FReadRetried == 4)
                 {
-                    printf("timeout, pause!\n");
+                    printf("audio play, read timeout!\n");
                     // To do...
                 }
                 else
