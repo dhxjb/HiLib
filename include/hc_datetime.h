@@ -7,7 +7,9 @@
 #include <time.h>
 
 #define EPOCH_2000                  ((time_t)0x386D4380)
+#define EPOCH_2020                  ((time_t)0x5E0BE100)
 #define TS_2000                     EPOCH_2000
+#define TS_2020                     EPOCH_2020
 
 namespace HiCreation
 {
@@ -118,6 +120,22 @@ namespace HiCreation
             localtime_r(&FVal, &tv);
 
             return tv.tm_yday;
+        }
+
+        uint32_t Month(void) const
+        {
+            struct tm tv;
+            localtime_r(&FVal, &tv);
+
+            return tv.tm_mon + 1;
+        }
+
+        uint32_t Year(void) const
+        {
+            struct tm tv;
+            localtime_r(&FVal, &tv);
+
+            return tv.tm_year + 1900;
         }
 
     // diff

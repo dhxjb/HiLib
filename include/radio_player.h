@@ -48,7 +48,8 @@ namespace HiCreation
 
             FAudioMixer->Add(FRadioDev);
             FRadioDev->Pause(0);
-            FAudioMixer->Pause(FRadioDev, 0); 
+            FAudioMixer->Pause(FRadioDev, 0);
+            return 0;
         }
 
         int Pause()
@@ -57,7 +58,8 @@ namespace HiCreation
                 return -ENODEV;
 
             FRadioDev->Pause(1);
-            FAudioMixer->Pause(FRadioDev, 1); 
+            FAudioMixer->Pause(FRadioDev, 1);
+            return 0;
         }
 
         // to do...

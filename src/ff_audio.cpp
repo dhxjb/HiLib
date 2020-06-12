@@ -169,6 +169,7 @@ int FFAudioPlayer::Play(uint8_t loop)
     usleep(20 * 1000);
     FAudioMixer->Add(this);
     FAudioMixer->Pause(this, 0);
+    return 0;
 }
 
 int FFAudioPlayer::Pause()
@@ -212,6 +213,7 @@ int FFAudioPlayer::Stop()
 
     FFormatCtx = NULL;
     FState = STOPPED;
+    return 0;
 }
 
 int FFAudioPlayer::AddOrUpdateSink(IAudioSink *sink)
@@ -223,6 +225,7 @@ int FFAudioPlayer::AddOrUpdateSink(IAudioSink *sink)
             Play();
         FPausedByRace = false;
     }
+    return 0;
 }
 
 void FFAudioPlayer::RemoveSink(IAudioSink *sink)

@@ -28,9 +28,7 @@ namespace HiCreation
     enum RADIO_modulation_t
     {
         RADIO_FM,
-        RADIO_AM,
-        RADIO_LW,
-        RADIO_SW
+        RADIO_AM
     };
 
     enum RADIO_output_t
@@ -45,7 +43,7 @@ namespace HiCreation
         TV4L2RadioCtrl(TV4L2Device *dev):
             FMode(RADIO_FM),
             FRadioDev(dev), 
-            FCurrFreq(0), Fac(16000)
+            Fac(16000)
         {}
 
         TV4L2Device *RadioDev() { return FRadioDev; }
@@ -68,7 +66,6 @@ namespace HiCreation
     protected:
         RADIO_modulation_t FMode;
         TV4L2Device *FRadioDev;
-        uint32_t FCurrFreq;
         double Fac;
     };
 };

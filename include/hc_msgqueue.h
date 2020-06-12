@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <errno.h>
+#include <unistd.h>
 #include <deque>
 #include <pthread.h>
 #include <semaphore.h>
@@ -37,7 +38,7 @@ namespace HiCreation
             return ret;
         }
 
-        void Clear()
+        virtual void Clear()
         {
             T *temp;
             pthread_mutex_lock(&FMutex);
@@ -50,7 +51,7 @@ namespace HiCreation
             pthread_mutex_unlock(&FMutex);
         }
         
-        int Post(T *t)
+        virtual int Post(T *t)
         {
             int ret = 0;
             pthread_mutex_lock(&FMutex);
@@ -62,7 +63,7 @@ namespace HiCreation
             return ret;
         }
 
-        T* Peek()
+        virtual T* Peek()
         {
             T *t;
             pthread_mutex_lock(&FMutex);
@@ -97,11 +98,13 @@ namespace HiCreation
             sem_destroy(&FMsgSem);
         }
 
-        virtual int Post(T *t)
+        virtual int Post(T *t) override
         {
             int ret;
             if ((ret = inherited::Post(t)) == 0)
+            {
                 sem_post(&FMsgSem);
+            }
             return ret;
         }
 
@@ -117,13 +120,13 @@ namespace HiCreation
         }
 
     protected:
-        T* Peek()
+        T* Peek() override
         {
             sem_wait(&FMsgSem);
             return inherited::Peek();
         }
 
-        virtual void Execute()
+        virtual void Execute() override
         {
             T *temp;
             while(! TThread::Terminating())
@@ -134,8 +137,6 @@ namespace HiCreation
                     OnMsgReceived(temp);
                     delete temp;
                 }
-                else
-                    printf("peek msg err!\n");
             }
         }
 

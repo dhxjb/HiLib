@@ -53,7 +53,7 @@ namespace HiCreation
             
             if (count > 0)
                 return i2c_smbus_read_i2c_block_data(FHandle, *buf, count, buf);
-            else if (count == 0)
+            else
                 return i2c_smbus_read_byte(FHandle);
         }
 

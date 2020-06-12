@@ -46,12 +46,9 @@ void TV4L2RadioCtrl::ShutDown()
 uint32_t TV4L2RadioCtrl::Freq()
 {
     RADIO_status_t stat;
-    if (FCurrFreq > 0)
-        return FCurrFreq;
-
     if (QueryStat(&stat) == 0)
         return stat.freq;
-    else
+    else 
         return 0;
 }
 
@@ -75,7 +72,6 @@ int TV4L2RadioCtrl::QueryStat(RADIO_status_t *status)
     status->RSSI = (uint8_t) (vfreq.reserved[1] & 0xFF);
     status->SNR = (uint8_t) (vfreq.reserved[2] & 0xFF);
     status->flags = (uint8_t) (vfreq.reserved[3] & 0xFF);
-    FCurrFreq = status->freq;
 
     printf("freq: %d rssi: %d snr: %d \n", status->freq, status->RSSI, status->SNR);
     return 0;
