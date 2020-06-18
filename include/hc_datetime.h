@@ -2,6 +2,7 @@
 #define __HC_DATETIME_H
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <stdint.h>
 #include <unistd.h>
 #include <time.h>
@@ -27,7 +28,16 @@ namespace HiCreation
             { }
 
         static int UpdateSystemTime(TDateTime &dt)
-            { return stime(&dt.FVal); }
+        { 
+            int ret = stime(&dt.FVal);
+            if (ret == 0)
+            {
+                char cmd[16] = {0};
+                snprintf(cmd, sizeof(cmd), "hwclock -w");
+                system(cmd);
+            }
+            return ret;
+        }
 
         static TDateTime Now()
             { return time(NULL); }
