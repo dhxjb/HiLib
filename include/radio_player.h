@@ -48,6 +48,7 @@ namespace HiCreation
 
             FAudioMixer->Add(FRadioDev);
             FRadioDev->Pause(0);
+            usleep(10 * 1000);
             FAudioMixer->Pause(FRadioDev, 0);
             return 0;
         }

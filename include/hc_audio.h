@@ -1,10 +1,10 @@
 #ifndef __HC_AUDIO_H__
 #define __HC_AUDIO_H__
 
+#include <list>
 #include <stdint.h>
+#include <pthread.h>
 #include <alsa/asoundlib.h>
-
-#include "hc_list.h"
 
 namespace HiCreation
 {
@@ -84,41 +84,52 @@ namespace HiCreation
     class TAudioSource : public IAudioSource
     {
     public:
+        TAudioSource()
+        {
+            pthread_mutex_init(&FLock, NULL);
+        }
+
+        virtual ~TAudioSource()
+        {
+            pthread_mutex_destroy(&FLock);
+        }
+
         virtual int AddOrUpdateSink(IAudioSink *sink)
-        { 
-            FSinks.PushBack(sink);
+        {
+            pthread_mutex_lock(&FLock);
+            FSinks.push_back(sink);
+            pthread_mutex_unlock(&FLock);           
             return 0;
         }
             
         virtual void RemoveSink(IAudioSink *sink)
         {
-            TList<IAudioSink *>::Iterator iter = FSinks.Begin();
-            while (iter != FSinks.End())
-            {
-                if ((*iter) == sink)
-                {
-                    FSinks.Extract(iter);
-                    break;
-                }
-                iter++;
-            }
+            pthread_mutex_lock(&FLock);
+            FSinks.remove(sink);
+            pthread_mutex_unlock(&FLock);
         }
 
         virtual void Send(audio_frame_t *frame)
         {
-            if (FSinks.IsEmpty())
+            if (FSinks.empty())
                 return;
 
-            TList<IAudioSink *>::Iterator iter;
-            for (iter = FSinks.Begin(); iter != FSinks.End(); iter++)
-                (*iter)->OnFrame(frame);
+            std::list<IAudioSink *>::iterator iter;
+            pthread_mutex_lock(&FLock);
+            for (iter = FSinks.begin(); iter != FSinks.end(); ++iter)
+            {
+                if ((*iter))
+                    (*iter)->OnFrame(frame);
+            }
+            pthread_mutex_unlock(&FLock); 
         }
 
         virtual int OnFillFrame(IAudioSink *sink, audio_frame_t *frame)
             { return -EACCES; }
 
     protected:
-        TList<IAudioSink *> FSinks;
+        std::list<IAudioSink *> FSinks;
+        pthread_mutex_t FLock;
     };
 };
 

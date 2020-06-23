@@ -14,6 +14,7 @@ extern "C" {
 #endif // __cplusplus
 
 #include "hc_audio.h"
+#include "hc_list.h"
 
 namespace HiCreation
 {
